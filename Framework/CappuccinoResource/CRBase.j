@@ -1,6 +1,6 @@
 @import <Foundation/CPObject.j>
 @import "CRSupport.j"
-
+@import "CPURLConnectionWithCallback.j"
 var defaultIdentifierKey = @"id",
     classAttributeNames  = [CPDictionary dictionary];
 
@@ -182,6 +182,22 @@ var defaultIdentifierKey = @"id",
     } else {
         return [self collectionDidLoad:response[1]];
     }
+}
+
++ (CPArray)allAsyncWithSender:(id)sender successCallback:(function)successCallback andErrorCallback:(function)errorCallback
+{
+    var request = [self collectionWillLoad];
+
+    if (!request) {
+        return NO;
+    }
+    
+    [CPURLConnectionWithCallback connectionWithRequest:request sender:self successCallback:function(responseString) {
+    	successCallback.call( sender,  [ self collectionDidLoad:responseString ] );
+    } 
+    errorCallback:function( statusCode, errorMessage ){
+    	errorCallback.call( sender,  statusCode, errorMessage );
+    }];
 }
 
 + (CPArray)allWithParams:(JSObject)params
@@ -386,6 +402,17 @@ var defaultIdentifierKey = @"id",
 {
     var notificationName = [self className] + "ResourceDidDestroy";
     [[CPNotificationCenter defaultCenter] postNotificationName:notificationName object:self];
+}
+
+// CPURLConnection Delegated Methods:
++ (void)connection:(CPURLConnection)connection didReceiveData:(CPString)data
+{
+    console.log(@"asdasdasdasd");
+}
+
++ (void)connection:(CPURLConnection)connection didFailWithError:(CPString)error
+{
+    alert("bar!");
 }
 
 @end
